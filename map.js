@@ -7,8 +7,11 @@ require([
 
   // Create the CSVLayer
   var csvLayer = new CSVLayer({
-    url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.csv",
-    copyright: "USGS Earthquakes"
+    //url: "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.csv"
+    //url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.csv",
+    //copyright: "USGS Earthquakes"
+    url: "data.csv",
+    delimiter: ";"
   });
 
   // all features in the layer will be visualized with
