@@ -1,9 +1,47 @@
+function formatCSV(data) {
+  data = data.slice(2,data.length);
+  data[0][5] = "Value";
+
+  let csvContent = "data:text/csv;charset=utf-8," + data.map(e=>e.join(",")).join("\n");
+  /*var newData = data[0];
+
+  for (var i = 1; i <= data.length-1; i++) {
+
+    newData = newData.concat("\r\n").concat(data[i]);
+
+  }*/
+
+  console.log(csvContent);
+  return csvContent;
+}
+
+function parseData(url, callBack) {
+    Papa.parse(url, {
+        download: true,
+        //dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+            callBack(results.data);
+        }
+    });
+}
+
+var url = "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.csv";
+
+var csvContent = parseData(url, formatCSV);
+
+var encodedUri = encodeURI(csvContent);
+
+
+console.log(encodedUri);
+
 require([
   "esri/Map",
   "esri/views/MapView",
   "esri/layers/TileLayer",
   "esri/layers/CSVLayer"
 ], function(Map, SceneView, TileLayer, CSVLayer){
+
 
   // Create the CSVLayer
   var csvLayer = new CSVLayer({
