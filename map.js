@@ -2,17 +2,31 @@ function formatCSV(data) {
   data = data.slice(2,data.length);
   data[0][5] = "Value";
 
-  let csvContent = "data:text/csv;charset=utf-8," + data.map(e=>e.join(",")).join("\n");
-  /*var newData = data[0];
+  var data = data.map(function(val){
+    return val.slice(0, 6);
+  });
+  
 
-  for (var i = 1; i <= data.length-1; i++) {
+  for (var i = 0; i < data.length; i++) {
+    // If no temperature value, remove station
+    if (data[i][5] == "") {
+      console.log(data[i][5])
+      data.splice(i,1)
+      i--;
+    }
+  }
 
-    newData = newData.concat("\r\n").concat(data[i]);
+  console.log(data);
 
-  }*/
+  let csvContent = data.map(e=>e.join(",")).join("\n");
+
+  data = Papa.parse(csvContent);
+
+  /*var filtered = csvContent.filter(function (el) {
+  return el != null;
+  });*/
 
   console.log(csvContent);
-  return csvContent;
 }
 
 function parseData(url, callBack) {
@@ -28,7 +42,8 @@ function parseData(url, callBack) {
 
 var url = "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.csv";
 
-var csvContent = parseData(url, formatCSV);
+parseData(url, formatCSV);
+
 
 require([
   "esri/Map",
@@ -50,7 +65,7 @@ require([
     //url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.csv",
     //copyright: "USGS Earthquakes"
     url: "data.csv",
-    delimiter: ";",
+    delimiter: ",",
     popupTemplate: template,
   });
 
