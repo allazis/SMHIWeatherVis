@@ -1,4 +1,4 @@
-StationsId;Stationsnamn;Latitude;Longitude;Height;2019-03-17 14:00:00;Kvalitet;;Data från senaste timmen
+StationsId;Stationsnamn;Latitude;Longitude;Height;Value;Kvalitet;;Data från senaste timmen
 188790;Abisko;68.353791;18.816438;392.303;-8.0;G;;Tidsperiod (fr.o.m.) = 2019-03-17 13:00:01 (UTC)
 97280;Adelsö A;59.357934;17.521315;5.612;;;;Tidsperiod (t.o.m.) = 2019-03-17 14:00:00 (UTC)
 167710;Arjeplog A;66.051337;17.839638;430.839;-5.0;G;;Samplingstid = Ej angivet

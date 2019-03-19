@@ -30,18 +30,19 @@ var url = "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/
 
 var csvContent = parseData(url, formatCSV);
 
-var encodedUri = encodeURI(csvContent);
-
-
-console.log(encodedUri);
-
 require([
   "esri/Map",
+  "esri/Color",
   "esri/views/MapView",
   "esri/layers/TileLayer",
   "esri/layers/CSVLayer"
-], function(Map, SceneView, TileLayer, CSVLayer){
+], function(Map, Color, SceneView, TileLayer, CSVLayer){
 
+
+      var template = {
+        title: "Temperature latest hour",
+        content: "Temperature is {Value} degrees Celcius at {Stationsnamn}"
+  };
 
   // Create the CSVLayer
   var csvLayer = new CSVLayer({
@@ -49,7 +50,8 @@ require([
     //url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.csv",
     //copyright: "USGS Earthquakes"
     url: "data.csv",
-    delimiter: ";"
+    delimiter: ";",
+    popupTemplate: template,
   });
 
   // all features in the layer will be visualized with
@@ -58,26 +60,64 @@ require([
   type: "simple",  // autocasts as new SimpleRenderer()
   symbol: {
     type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
-    size: 6,
+    size: 12,
     color: "black",
     outline: {  // autocasts as new SimpleLineSymbol()
-      width: 0.5,
+      width: 0,//0.5,
       color: "white"
     }
     }
   };
 
+  const colorVisVar = {
+  type: "color",
+  field: "Value",
+  stops: [
+    //{ value: -25, color: "pink" },
+    { value: -20, color: "purple" },
+    { value: -15, color: "blue" },
+    //{ value: -10, color: "cornflowerblue"},
+    //{ value: -5, color: "aquamarine" },
+    { value: 0, color: "lightgreen" },
+    //{ value: 5, color: "mediumspringgreen" },
+    { value: 10, color: "yellow" },
+    //{ value: 15, color: "orange" },
+    { value: 20, color: "darkorange" },
+    { value: 25, color: "red" }
+  ],
+  legendOptions: {
+    title: "Temperature"
+  }
+  };
+  csvLayer.renderer.visualVariables = [ colorVisVar ];
+
+
+  /*
+  csvLayer.renderer = {
+  type: "heatmap",
+  field: "Value",
+  colorStops: [
+    { ratio: 0, color: "rgba(255, 255, 255, 0)" },
+    { ratio: 0.02, color: "rgba(255, 255, 255, 1)" },
+    { ratio: 0.05, color: "rgba(255, 140, 0, 1)" },
+    { ratio: 0.08, color: "rgba(255, 140, 0, 1)" },
+    { ratio: 1, color: "rgba(255, 0, 0, 1)" }
+  ],
+  minPixelIntensity: 0,
+  maxPixelIntensity: 5000
+};*/
+
   // Create the TileLayer
-  var transportationLayer = new TileLayer({
+  /*var transportationLayer = new TileLayer({
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer",
     id: "streets",
     opacity: 0.7
-  });
+  });*/
 
   // Create the Map
   var map = new Map({
     basemap: "satellite",
-    layers: [transportationLayer, csvLayer]
+    layers: [csvLayer]
   });
 
   // Create the SceneView
@@ -87,6 +127,5 @@ require([
     zoom: 4,  // Sets zoom level based on level of detail (LOD)
     center: [15, 65]  // Sets center point of view using longitude,latitude
   });
-
 
 });
