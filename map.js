@@ -41,7 +41,7 @@ require([
 
       var template = {
         title: "Temperature latest hour",
-        content: "Temperature is {Value} degrees Celcius at {Stationsnamn}"
+        content: "Temperature is {Value}°C at {Stationsnamn}"
   };
 
   // Create the CSVLayer
