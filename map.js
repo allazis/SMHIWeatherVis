@@ -1,26 +1,25 @@
 function formatCSV(data) {
-  // Get two first meta data rows
-  let info = data.slice(0,2);
-  // Remove two first rows from sheet 
-  data = data.slice(2,data.length);
-  // Get time (given by SMHI as name for value column)
-  window.dataTime = data[0][5];
-  // Set name on column with values
-  data[0][5] = "Value";
-  // Trim data sheet
-  let dataTrimmed = data.map(function(val){
-    return val.slice(0, 6);
-  });
-  // Remove all stations with no value
-  for (var i = 0; i < dataTrimmed.length; i++) {
-    if (dataTrimmed[i][5] == "") {
-      dataTrimmed.splice(i,1)
-      i--;
+    // Get two first meta data rows
+    let info = data.slice(0, 2);
+    // Remove two first rows from sheet 
+    data = data.slice(2, data.length);
+    // Get time (given by SMHI as header for value column)
+    window.csvTime = data[0][5];
+    // Set header on value column
+    data[0][5] = "Value";
+    // Trim data sheet
+    let dataTrimmed = data.map(function(val) {
+        return val.slice(0, 6);
+    });
+    // Remove all stations with no value
+    for (var i = 0; i < dataTrimmed.length; i++) {
+        if (dataTrimmed[i][5] == "") {
+            dataTrimmed.splice(i, 1)
+            i--;
+        }
     }
-  }
-
-  window.dataInfo = info.map(e=>e.join(",")).join("\n");
-  window.dataCsv = dataTrimmed.map(e=>e.join(",")).join("\n");
+    window.csvInfo = info.map(e => e.join(",")).join("\n");
+    window.csvData = dataTrimmed.map(e => e.join(",")).join("\n");
 }
 
 // Parse csv file to 2D array
@@ -35,112 +34,134 @@ function parseData(url, callBack) {
     });
 }
 
+// Data source URL
 var csvUrl = "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.csv";
 
 // Parse and format CSV data from url
 parseData(csvUrl, formatCSV);
 
-window.dataCsv = null
-
+window.csvData = null
 // Wait for data processing to finish
 var intvl = setInterval(function() {
-  // Proceed when data processing is finished
-    if (window.dataCsv) { 
+    // Proceed when data processing is finished
+    if (window.csvData) {
         clearInterval(intvl);
-        console.log(dataCsv);
+        console.log(csvData);
 
-var isMac = navigator.platform.match(/(Mac|iPhone|iPod|iPad)/i) ? true : false;
+        // Check if browsing on Mac
+        var isMac = navigator.platform.match(/(Mac|iPhone|iPod|iPad)/i) ? true : false;
 
         if (!isMac) {
-  var BOM = "\ufeff";
-  csvData = BOM + csv;
-}
+            var BOM = "\ufeff";
+            csvData = BOM + csvData;
+        }
 
-var blob = new Blob([dataCsv], {
-  encoding: "UTF-8",
-  type: "text/csv;charset=UTF-8"
-});
-var blobUrl = window.URL.createObjectURL(blob);
+        // Create CSV blob and url
+        var csvBlob = new Blob([csvData], {
+            encoding: "UTF-8",
+            type: "text/csv;charset=UTF-8"
+        });
+        var csvBlobUrl = window.URL.createObjectURL(csvBlob);
 
-    require([
-    "esri/Map",
-    "esri/Color",
-    "esri/views/MapView",
-    "esri/layers/CSVLayer"
-  ], function(Map, Color, SceneView, CSVLayer){
+        require([
+            "esri/Map",
+            "esri/Color",
+            "esri/views/MapView",
+            "esri/layers/CSVLayer",
+            "esri/widgets/Legend"
+        ], function(Map, Color, SceneView, CSVLayer, Legend) {
 
+            // Configuration for pop up template
+            var template = {
+                title: "Temperature latest hour",
+                content: "Temperature is {Value}°C at {Stationsnamn}"
+            };
 
-        var template = {
-          title: "Temperature latest hour",
-          content: "Temperature is {Value}°C at {Stationsnamn}"
-    };
+            // Create the CSVLayer
+            var csvLayer = new CSVLayer({
+                title: "Air temperature in Sweden at " + csvTime,
+                url: csvBlobUrl,
+                delimiter: ",",
+                popupTemplate: template,
+                opacity: "0.8"
+            });
 
-    // Create the CSVLayer
-    var csvLayer = new CSVLayer({
-      //url: "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.csv"
-      //url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.csv",
-      //copyright: "USGS Earthquakes"
-      url: blobUrl,
-      delimiter: ",",
-      popupTemplate: template,
-      opacity: "0.8"
-    });
+            // Create the CSV layer renderer 
+            csvLayer.renderer = {
+                type: "simple",
+                label: "SMHI Weather Station",
+                symbol: {
+                    type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+                    size: 10,
+                    outline: {
+                        width: 0
+                    }
+                }
+            };
 
-    // all features in the layer will be visualized with
-    // a 6pt black marker symbol and a thin, white outline
-    csvLayer.renderer = {
-    type: "simple",  // autocasts as new SimpleRenderer()
-    symbol: {
-      type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
-      size: 10,
-      color: "black",
-      outline: {  // autocasts as new SimpleLineSymbol()
-        width: 0,//0.5,
-        color: "white"
-      }
-      }
-    };
+            // Set color visualization settings
+            const colorVisVar = {
+                type: "color",
+                field: "Value",
+                legendOptions: {
+                    title: "Degreed Celsius (°C)",
+                },
+                stops: [{
+                        value: -20,
+                        color: "darkblue",
+                        label: "-20"
+                    },
+                    {
+                        value: -10,
+                        color: "blue",
+                        label: "-10"
+                    }, ,
+                    {
+                        value: 0,
+                        color: "green",
+                        label: "0"
+                    },
+                    {
+                        value: 10,
+                        color: "gold",
+                        label: "10"
+                    },
+                    {
+                        value: 20,
+                        color: "darkorange",
+                        label: "20"
+                    },
+                    {
+                        value: 30,
+                        color: "red",
+                        label: "30"
+                    }
+                ]
+            };
+            csvLayer.renderer.visualVariables = [colorVisVar];
 
-    const colorVisVar = {
-    type: "color",
-    field: "Value",
-    stops: [
-      //{ value: -25, color: "pink" },
-      { value: -20, color: "darkblue" },
-      { value: -10, color: "blue" },
-      //{ value: -10, color: "cornflowerblue"},
-      //{ value: -5, color: "aquamarine" },
-      { value: 0, color: "green" },
-      //{ value: 5, color: "mediumspringgreen" },
-      { value: 10, color: "gold" },
-      //{ value: 15, color: "orange" },
-      { value: 20, color: "darkorange" },
-      { value: 30, color: "red" }
-    ]
-    };
-    csvLayer.renderer.visualVariables = [colorVisVar];
+            // Create the Map
+            var map = new Map({
+                basemap: "osm",
+                layers: [csvLayer]
+            });
 
-    // Create the Map
-    var map = new Map({
-      basemap: "osm",
-      layers: [csvLayer]
-    });
+            // Create the SceneView
+            var view = new SceneView({
+                container: "mapDiv", // Reference to the scene div
+                map: map, // Reference to the map object 
+                zoom: 4, // Sets zoom level based on level of detail (LOD)
+                center: [20, 63] // Sets center point of view using longitude,latitude
+            });
 
-    // Create the SceneView
-    var view = new SceneView({
-      container: "mapDiv",  // Reference to the scene div created in step 5
-      map: map,  // Reference to the map object created before the scene
-      zoom: 4,  // Sets zoom level based on level of detail (LOD)
-      center: [15, 60]  // Sets center point of view using longitude,latitude
-    });
+            view.ui.add(new Legend({
+                view: view,
+                style: {
+                    layout: "auto"
+                }
+            }), "top-right");
 
-  });
+        });
 
     }
 }, 10);
-
-
-
-
-
-
