@@ -26,7 +26,6 @@ function formatCSV(data) {
 function parseData(url, callBack) {
     Papa.parse(url, {
         download: true,
-        //dynamicTyping: true,
         skipEmptyLines: true,
         complete: function(results) {
             callBack(results.data);
@@ -91,7 +90,7 @@ var intvl = setInterval(function() {
                 type: "simple",
                 label: "SMHI Weather Station",
                 symbol: {
-                    type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+                    type: "simple-marker", 
                     size: 10,
                     outline: {
                         width: 0
@@ -104,7 +103,7 @@ var intvl = setInterval(function() {
                 type: "color",
                 field: "Value",
                 legendOptions: {
-                    title: "Degreed Celsius (°C)",
+                    title: "Degrees Celsius (°C)",
                 },
                 stops: [{
                         value: -20,
@@ -154,13 +153,10 @@ var intvl = setInterval(function() {
                 center: [20, 63] // Sets center point of view using longitude,latitude
             });
 
-            view.ui.add(new Legend({
-                view: view,
-                style: {
-                    layout: "auto"
-                }
-            }), "top-right");
-
+            var legend = new Legend({
+                view: view
+            });
+            view.ui.add(legend, "bottom-right");
         });
 
     }
