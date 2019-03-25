@@ -112,7 +112,7 @@ var intvl = setInterval(function() {
                     },
                     {
                         value: -10,
-                        color: "blue",
+                        color: "darkturquoise",
                         label: "-10"
                     }, ,
                     {
